@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # --- DELETED LOCAL QDRANT SERVICE ---
+  # (We removed the 'qdrant' section here because you are using the Cloud)
+
+  backend:
+    build: ./backend
+    container_name: video_rag_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - QDRANT_URL=${QDRANT_URL}        # Reads from .env
+      - QDRANT_API_KEY=${QDRANT_API_KEY} # Reads from .env
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  frontend:
+    build: ./frontend
+    container_name: video_rag_frontend
+    ports:
+      - "5173:80" 
+    depends_on:
+      - backend
