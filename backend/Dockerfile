@@ -1,10 +1,12 @@
-FROM python:3.10-slim
+# UPDATE: Using Python 3.11 to match your local Mac version
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV (essential for video processing)
+# Install system dependencies for OpenCV
+# We use 'libgl1' because 'libgl1-mesa-glx' is deprecated in this OS version
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
