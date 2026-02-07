@@ -2,38 +2,78 @@ import React, { useRef, useState, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import { Play, Pause } from 'lucide-react';
 
-const VideoPlayer = ({ videoUrl, timestamp, isActive }) => {
+const VideoPlayer = ({ videoUrl, timestamp = 0, isActive }) => {
     const playerRef = useRef(null);
     const [playing, setPlaying] = useState(false);
 
-    // Convert sortable timestamp (float) back to seconds if needed
-    // Assuming backend returns timestamp_sortable or we parse timestamp_str
-    // For this prototype, let's assume 'timestamp' passed here is a float (seconds offset) 
-    // If your backend only returns the string '12022006...', we need to calculate offset. 
-    // BUT per our last backend fix, we are seeking simply.
-    // Let's assume for this specific component, we pass the 'seconds' to seek to.
-    
+    // Detect if this is a generated clip or full video
+    // Clips are stored in /static/clips/ (local) OR /clips/ (supabase)
+    const isClip = videoUrl?.includes('/static/clips/') || videoUrl?.includes('/clips/');
+
     // Auto-seek when the video loads or becomes active
     useEffect(() => {
         if (isActive && playerRef.current) {
-            // Seek to 2 seconds before the event for context
-            playerRef.current.seekTo(Math.max(0, timestamp - 2), 'seconds');
+            // Only seek for FULL videos. Clips should start naturally at 0.
+            if (!isClip && typeof playerRef.current.seekTo === 'function') {
+                const safeTime = Number.isFinite(timestamp) ? Math.max(0, timestamp - 2) : 0;
+                playerRef.current.seekTo(safeTime, 'seconds');
+            }
             setPlaying(true);
-        } else {
+        } else if (!isActive) {
             setPlaying(false);
         }
-    }, [isActive, timestamp]);
+    }, [isActive, timestamp, isClip]);
 
+    // --- RENDER RAW VIDEO FOR CLIPS (Verified working via test_player.html) ---
+    if (isClip) {
+         const fullUrl = videoUrl?.startsWith('http') ? videoUrl : `http://localhost:8000${videoUrl}`;
+         return (
+            <div className="video-wrapper relative rounded-lg overflow-hidden bg-black aspect-video group">
+                <video 
+                    src={fullUrl}
+                    className="w-full h-full object-contain"
+                    controls
+                    muted
+                    playsInline
+                    autoPlay={isActive} // Autoplay if active (hovered/selected)
+                    loop
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
+                    onEnded={() => setPlaying(false)}
+                    onError={(e) => {
+                         console.error("[VideoPlayer RAW] Error:", e);
+                         alert("Clip Error: " + e.target.error?.message);
+                    }}
+                />
+            </div>
+         );
+    }
+
+    // --- KEEP REACTPLAYER FOR FULL VIDEOS (Complex Seeking) ---
     return (
         <div className="video-wrapper relative rounded-lg overflow-hidden bg-black aspect-video group">
             <ReactPlayer
                 ref={playerRef}
-                url={`http://localhost:8000${videoUrl}`} // Append backend host
+                url={videoUrl?.startsWith('http') ? videoUrl : `http://localhost:8000${videoUrl}`} // FORCE backend URL
                 width="100%"
                 height="100%"
                 playing={playing}
                 controls={true}
-                onStart={() => playerRef.current.seekTo(Math.max(0, timestamp - 2))}
+                muted={true} // Enable autoplay support
+                playsinline={true} // Better mobile support
+                onError={(e) => {
+                    console.error("VideoPlayer Error:", e);
+                }}
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
+                onEnded={() => setPlaying(false)}
+                onStart={() => {
+                     // Only seek for FULL videos.
+                     if (!isClip && playerRef.current && typeof playerRef.current.seekTo === 'function') {
+                        const safeTime = Number.isFinite(timestamp) ? Math.max(0, timestamp - 2) : 0;
+                        playerRef.current.seekTo(safeTime, 'seconds');
+                     }
+                }}
             />
             
             {!playing && (

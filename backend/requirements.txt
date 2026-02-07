@@ -3,7 +3,7 @@ uvicorn
 qdrant-client
 openai
 python-multipart
-sentence-transformers
 python-dotenv
 opencv-python-headless
 moviepy
+pydantic-settings

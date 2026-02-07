@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -8,7 +9,10 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Paths
-    VIDEO_DIR: str = "/app/data/videos"
+    # Derive BASE_DIR from this file's location: backend/app/core/config.py -> backend/
+    BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
+    DATA_DIR: Path = BASE_DIR / "data"
+    VIDEO_DIR: Path = DATA_DIR / "videos"
     
     # Secrets
     OPENAI_API_KEY: str
@@ -16,6 +20,11 @@ class Settings(BaseSettings):
     
     # --- NEW: Add API Key Support ---
     QDRANT_API_KEY: Optional[str] = None 
+
+    # Supabase Config
+    SUPABASE_URL: str
+    SUPABASE_ANON_KEY: str # Anon or Service Role
+    SUPABASE_BUCKET: str = "videos"
 
     class Config:
         env_file = ".env"

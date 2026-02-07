@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
-import { searchVideos } from './api/client';
+import UploadModal from './components/UploadModal';
+import UploadProgress from './components/UploadProgress';
+import { searchVideos, uploadVideo } from './api/client';
 import './App.css'; // This now loads our new beautiful styles
 
 function App() {
@@ -12,6 +14,16 @@ function App() {
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({ cameras: [], startTime: null });
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    
+    // Global Upload State
+    const [uploadState, setUploadState] = useState({
+        isUploading: false,
+        progress: 0,
+        status: null, // 'uploading', 'processing', 'success', 'error'
+        fileName: '',
+        message: ''
+    });
     
     const chatEndRef = useRef(null);
 
@@ -46,13 +58,52 @@ function App() {
         }
     };
 
+    const handleStartUpload = async (formData, fileName) => {
+        setUploadState({
+            isUploading: true,
+            progress: 0,
+            status: 'uploading',
+            fileName: fileName,
+            message: 'Starting upload...'
+        });
+
+        try {
+            const res = await uploadVideo(formData, (percent) => {
+                setUploadState(prev => ({
+                    ...prev,
+                    progress: percent,
+                    status: percent === 100 ? 'processing' : 'uploading'
+                }));
+            });
+
+            setUploadState(prev => ({
+                ...prev,
+                status: 'success',
+                message: `Indexed ${res.frames_indexed || 0} frames.`
+            }));
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                 setUploadState(prev => ({ ...prev, status: null }));
+            }, 5000);
+
+        } catch (error) {
+            console.error("Upload error:", error);
+             setUploadState(prev => ({
+                ...prev,
+                status: 'error',
+                message: 'Upload failed.'
+            }));
+        }
+    };
+
     return (
         <div className="app-container">
             {/* Sidebar (Fixed Width) */}
             <Sidebar 
                 onFilterChange={setFilters} 
                 onClearChat={() => setMessages([])}
-                onUploadClick={() => alert("Upload logic is in backend/main.py!")}
+                onUploadClick={() => setShowUploadModal(true)}
             />
 
             {/* Main Chat Area (Flexible) */}
@@ -89,6 +140,21 @@ function App() {
                     </form>
                 </div>
             </main>
+
+            {/* Modals */}
+            {/* Modals & Overlays */}
+            <UploadModal 
+                isOpen={showUploadModal} 
+                onClose={() => setShowUploadModal(false)}
+                onStartUpload={handleStartUpload}
+            />
+
+            <UploadProgress
+                fileName={uploadState.fileName}
+                progress={uploadState.progress}
+                status={uploadState.status}
+                onClose={() => setUploadState(prev => ({ ...prev, status: null }))}
+            />
         </div>
     );
 }

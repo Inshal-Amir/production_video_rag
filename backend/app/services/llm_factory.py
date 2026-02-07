@@ -11,6 +11,8 @@ class BaseLLM(ABC):
     def check_intent(self, text: str) -> str: pass
     @abstractmethod
     def get_general_response(self, text: str) -> str: pass
+    @abstractmethod
+    def get_search_summary(self, query: str, results: list) -> str: pass
 
 class OpenAIProvider(BaseLLM):
     def __init__(self):
@@ -21,7 +23,7 @@ class OpenAIProvider(BaseLLM):
             model="gpt-4o-mini",
             messages=[
                 {"role": "user", "content": [
-                    {"type": "text", "text": "Describe this frame in detail..."},
+                    {"type": "text", "text": "Describe this frame in precise detail. Identify all key elements. If a person appears, specify gender, approximate age, clothing type and colors, and visible actions. If a vehicle appears, specify color, make/model (if identifiable), license plate, and position. Include notable objects, environment details, and anything visually distinctive. Do not omit observable details."},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                 ]}
             ],
@@ -70,6 +72,31 @@ class OpenAIProvider(BaseLLM):
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": text}
+            ]
+        )
+        return response.choices[0].message.content
+
+    # --- NEW: RAG Summary ---
+    def get_search_summary(self, query: str, results: list) -> str:
+        system_prompt = (
+             "You are a helpful assistant summarizing video search results. "
+             "Answer the user's query based ONLY on the provided video descriptions. "
+             "Mention specific times if relevant. Be concise and direct."
+        )
+        
+        # Format context
+        context_str = "\n".join([
+            f"- [Date: {r.get('display_date', 'N/A')}, Time: {r.get('display_time', 'N/A')}] {r.get('description', 'No description')}" 
+            for r in results[:5] # Limit context to top 5
+        ])
+        
+        user_prompt = f"User Query: {query}\n\nFound Video Events:\n{context_str}\n\nAnswer:"
+        
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
             ]
         )
         return response.choices[0].message.content

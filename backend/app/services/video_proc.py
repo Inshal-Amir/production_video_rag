@@ -11,7 +11,20 @@ class VideoProcessor:
         return base64.b64encode(buffer).decode('utf-8')
 
     def parse_custom_ts(self, ts_str):
-        """Converts '12022006152036125' to a datetime object"""
+        """Converts '12022006152036125' OR ISO format to a datetime object"""
+        if "-" in ts_str or "T" in ts_str:
+            try:
+                # Handle "2026-01-31" -> "2026-01-31 00:00:00"
+                if ":" not in ts_str:
+                     ts_str += "T00:00:00"
+                
+                # Handle "2026-01-31T13:00" -> "2026-01-31T13:00:00"
+                if len(ts_str.split(":")) == 2:
+                    ts_str += ":00"
+                return datetime.fromisoformat(ts_str)
+            except ValueError:
+                pass # Fallback to legacy
+        
         # Format: DD MM YYYY HH MM SS mmm
         dt_part = ts_str[:-3]
         ms_part = ts_str[-3:]
@@ -64,6 +77,7 @@ class VideoProcessor:
                 yield {
                     "frame_id": frame_id,
                     "timestamp_str": frame_ts_str,
+                    "relative_offset": seconds_passed,
                     "image": b64_img
                 }
                 
@@ -71,19 +85,33 @@ class VideoProcessor:
         cap.release()
 
     def create_clip(self, video_path, start_offset, output_path):
-        """Creates a 4-second clip around the timestamp"""
+        """Creates a 3-second clip using MoviePy"""
         try:
+            start = max(0, start_offset - 1)
+            duration = 3
+            end = start + duration
+
             with VideoFileClip(video_path) as video:
-                start = max(0, start_offset - 2)
-                end = min(video.duration, start_offset + 2)
+                # Ensure the end time isn't past the video duration
+                if end > video.duration:
+                    end = video.duration
+                if start >= end:
+                    start = max(0, end - duration)
+
+                new_clip = video.subclipped(start, end)
+                # Write file with compatible codecs
+                # audio_codec='aac' ensures audio works in browsers
+                # temp_audiofile and remove_temp=True cleans up
+                new_clip.write_videofile(
+                    output_path,
+                    codec="libx264",
+                    audio_codec="aac",
+                    temp_audiofile="temp-audio.m4a",
+                    remove_temp=True,
+                    logger=None  # Reduce console spam
+                )
                 
-                if hasattr(video, 'subclipped'):
-                    new_clip = video.subclipped(start, end)
-                else:
-                    new_clip = video.subclip(start, end)
-                
-                new_clip.write_videofile(output_path, codec="libx264", audio_codec="aac", preset="ultrafast", logger=None)
             return True
         except Exception as e:
-            print(f"Error clipping: {e}")
+            print(f"Error clipping with MoviePy: {e}")
             return False
