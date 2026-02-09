@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from openai import OpenAI
 import os
+import openai
+from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
 
 class BaseLLM(ABC):
     @abstractmethod
@@ -18,6 +20,11 @@ class OpenAIProvider(BaseLLM):
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+    @retry(
+        wait=wait_random_exponential(multiplier=1, max=60),
+        stop=stop_after_attempt(6),
+        retry=retry_if_exception_type((openai.RateLimitError, openai.APIConnectionError))
+    )
     def get_vision_description(self, base64_image: str) -> str:
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
@@ -31,6 +38,11 @@ class OpenAIProvider(BaseLLM):
         )
         return response.choices[0].message.content
 
+    @retry(
+        wait=wait_random_exponential(multiplier=1, max=60),
+        stop=stop_after_attempt(6),
+        retry=retry_if_exception_type((openai.RateLimitError, openai.APIConnectionError))
+    )
     def get_embedding(self, text: str) -> list:
         response = self.client.embeddings.create(
             input=text, model="text-embedding-3-small"
@@ -38,6 +50,11 @@ class OpenAIProvider(BaseLLM):
         return response.data[0].embedding
 
     # --- NEW: Router Logic ---
+    @retry(
+        wait=wait_random_exponential(multiplier=1, max=60),
+        stop=stop_after_attempt(6),
+        retry=retry_if_exception_type((openai.RateLimitError, openai.APIConnectionError))
+    )
     def check_intent(self, text: str) -> str:
         system_prompt = (
             "You are an intent classifier for a Video Security System. "
@@ -60,6 +77,11 @@ class OpenAIProvider(BaseLLM):
             return "SEARCH"
 
     # --- NEW: General Chat Logic ---
+    @retry(
+        wait=wait_random_exponential(multiplier=1, max=60),
+        stop=stop_after_attempt(6),
+        retry=retry_if_exception_type((openai.RateLimitError, openai.APIConnectionError))
+    )
     def get_general_response(self, text: str) -> str:
         system_prompt = (
             "You are the VideoRAG AI Assistant. "
@@ -77,6 +99,11 @@ class OpenAIProvider(BaseLLM):
         return response.choices[0].message.content
 
     # --- NEW: RAG Summary ---
+    @retry(
+        wait=wait_random_exponential(multiplier=1, max=60),
+        stop=stop_after_attempt(6),
+        retry=retry_if_exception_type((openai.RateLimitError, openai.APIConnectionError))
+    )
     def get_search_summary(self, query: str, results: list) -> str:
         system_prompt = (
              "You are a helpful assistant summarizing video search results. "
