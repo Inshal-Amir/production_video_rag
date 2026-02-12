@@ -2,17 +2,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --sidebar-bg: #0f172a;      /* Deep Navy/Black */
-  --sidebar-text: #94a3b8;    /* Muted Blue-Grey */
-  --sidebar-hover: #1e293b;   /* Slightly lighter navy */
-  --primary: #3b82f6;         /* Bright Blue */
-  --bg-chat: #f8fafc;         /* Very light grey */
-  --bubble-user: #2563eb;     /* User Message Blue */
-  --bubble-bot: #ffffff;      /* Bot Message White */
+  --sidebar-bg: #0f172a;
+  /* Deep Navy/Black */
+  --sidebar-text: #94a3b8;
+  /* Muted Blue-Grey */
+  --sidebar-hover: #1e293b;
+  /* Slightly lighter navy */
+  --primary: #3b82f6;
+  /* Bright Blue */
+  --bg-chat: #f8fafc;
+  /* Very light grey */
+  --bubble-user: #2563eb;
+  /* User Message Blue */
+  --bubble-bot: #ffffff;
+  /* Bot Message White */
   --border: #e2e8f0;
 }
 
-body, html, #root {
+body,
+html,
+#root {
   height: 100%;
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -34,7 +43,8 @@ body, html, #root {
   display: flex;
   flex-direction: column;
   border-right: 1px solid #1e293b;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
+  /* Prevent shrinking */
 }
 
 .sidebar-header {
@@ -71,7 +81,8 @@ body, html, #root {
 /* Camera Grid */
 .camera-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  grid-template-columns: repeat(2, 1fr);
+  /* 2 columns */
   gap: 8px;
 }
 
@@ -170,8 +181,16 @@ body, html, #root {
   color: white;
 }
 
-.avatar.bot { background: #10b981; } /* Green */
-.avatar.user { background: var(--primary); } /* Blue */
+.avatar.bot {
+  background: #10b981;
+}
+
+/* Green */
+.avatar.user {
+  background: var(--primary);
+}
+
+/* Blue */
 
 .bubble {
   padding: 15px 20px;
@@ -179,7 +198,7 @@ body, html, #root {
   font-size: 15px;
   line-height: 1.6;
   max-width: 80%;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .bubble.user {
@@ -240,9 +259,18 @@ body, html, #root {
 }
 
 /* Scrollbar Polish */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
 
 /* =========================================
    PURE CSS REFACTOR - SIDEBAR & MODAL
@@ -277,12 +305,14 @@ body, html, #root {
 .sidebar-sub-group {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* Space between label and input */
+  gap: 4px;
+  /* Space between label and input */
 }
 
 .sidebar-label {
   display: block;
-  font-size: 0.7rem; /* Small uppercase */
+  font-size: 0.7rem;
+  /* Small uppercase */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -297,7 +327,8 @@ body, html, #root {
 
 .sidebar-icon-left {
   position: absolute;
-  left: 16px; /* standard left spacing */
+  left: 16px;
+  /* standard left spacing */
   top: 0;
   height: 100%;
   display: flex;
@@ -312,11 +343,13 @@ body, html, #root {
 
 .sidebar-input {
   width: 100%;
-  box-sizing: border-box; /* Important for padding */
+  box-sizing: border-box;
+  /* Important for padding */
   background-color: #1e293b;
   border: 1px solid #334155;
   border-radius: 8px;
-  padding: 10px 16px 10px 48px; /* Left padding for icon space */
+  padding: 10px 16px 10px 48px;
+  /* Left padding for icon space */
   font-size: 0.875rem;
   color: #f1f5f9;
   outline: none;
@@ -359,14 +392,15 @@ body, html, #root {
 }
 
 .clear-chat-btn:hover svg {
-  color: #f87171; /* Red hover for trash */
+  color: #f87171;
+  /* Red hover for trash */
 }
 
 /* --- UPLOAD MODAL (Premium Dark Card) --- */
 
 .modal-overlay {
   position: fixed;
-  top: 0; 
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
@@ -381,8 +415,13 @@ body, html, #root {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-card {
@@ -397,12 +436,20 @@ body, html, #root {
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .modal-header {
-  background: linear-gradient(to right, #2563eb, #4f46e5); /* Blue to Indigo */
+  background: linear-gradient(to right, #2563eb, #4f46e5);
+  /* Blue to Indigo */
   padding: 20px 24px;
   display: flex;
   justify-content: space-between;
@@ -421,7 +468,8 @@ body, html, #root {
 
 .modal-title p {
   margin: 4px 0 0 0;
-  color: #dbeafe; /* Blue-100 */
+  color: #dbeafe;
+  /* Blue-100 */
   font-size: 0.8rem;
 }
 
@@ -462,7 +510,8 @@ body, html, #root {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #bfdbfe; /* Blue-200 */
+  color: #bfdbfe;
+  /* Blue-200 */
   margin-bottom: 4px;
 }
 
@@ -484,10 +533,12 @@ body, html, #root {
 .modal-input {
   width: 100%;
   box-sizing: border-box;
-  background-color: rgba(30, 41, 59, 0.5); /* Slate-800 / 50% */
+  background-color: rgba(30, 41, 59, 0.5);
+  /* Slate-800 / 50% */
   border: 1px solid rgba(51, 65, 85, 0.5);
   border-radius: 12px;
-  padding: 14px 16px 14px 48px; /* Room for icon */
+  padding: 14px 16px 14px 48px;
+  /* Room for icon */
   color: #f1f5f9;
   font-size: 0.9rem;
   font-family: inherit;
@@ -604,4 +655,122 @@ body, html, #root {
   background: rgba(239, 68, 68, 0.1);
   color: #f87171;
   border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* --- VIEW TOGGLE & TABLE STYLES --- */
+
+/* The Container for buttons above the bubble */
+.view-toggle-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  margin-left: 4px;
+}
+
+/* Toggle Buttons */
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* Active State */
+.toggle-btn.active {
+  background: #e0e7ff;
+  /* Light Indigo/Blue */
+  color: #4338ca;
+  /* Dark Indigo/Blue */
+  border-color: #4338ca;
+}
+
+/* Table Container styling to match bubble */
+.table-wrapper {
+  background: white;
+  padding: 0 !important;
+  /* Override bubble padding for table */
+  overflow: hidden;
+  /* Round corners */
+  border: 1px solid #e2e8f0;
+}
+
+/* The Table Itself */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.results-table th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.results-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.results-table tr:last-child td {
+  border-bottom: none;
+}
+
+.results-table tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Table Badges */
+.badge-yes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #166534;
+  background-color: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-no {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #991b1b;
+  background-color: #fee2e2;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.font-mono {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+}
+
+.text-desc {
+  color: #475569;
+  line-height: 1.4;
 }
