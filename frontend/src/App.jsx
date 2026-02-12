@@ -15,7 +15,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({ cameras: [], startTime: null });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    
+
     // Global Upload State
     const [uploadState, setUploadState] = useState({
         isUploading: false,
@@ -24,7 +24,7 @@ function App() {
         fileName: '',
         message: ''
     });
-    
+
     const chatEndRef = useRef(null);
 
     useEffect(() => {
@@ -36,14 +36,15 @@ function App() {
         if (!inputValue.trim()) return;
 
         const userText = inputValue;
-        setInputValue('');
+        // --- CHANGE HERE: Comment out or remove this line ---
+        // setInputValue('');
         setMessages(prev => [...prev, { role: 'user', text: userText }]);
         setLoading(true);
 
         try {
             // 1. Get Response (Chat OR Search)
             const response = await searchVideos(userText, filters);
-            
+
             // 2. Add AI Message directly using backend text
             setMessages(prev => [...prev, {
                 role: 'assistant',
@@ -84,12 +85,12 @@ function App() {
 
             // Auto-dismiss after 5 seconds
             setTimeout(() => {
-                 setUploadState(prev => ({ ...prev, status: null }));
+                setUploadState(prev => ({ ...prev, status: null }));
             }, 5000);
 
         } catch (error) {
             console.error("Upload error:", error);
-             setUploadState(prev => ({
+            setUploadState(prev => ({
                 ...prev,
                 status: 'error',
                 message: 'Upload failed.'
@@ -100,8 +101,8 @@ function App() {
     return (
         <div className="app-container">
             {/* Sidebar (Fixed Width) */}
-            <Sidebar 
-                onFilterChange={setFilters} 
+            <Sidebar
+                onFilterChange={setFilters}
                 onClearChat={() => setMessages([])}
                 onUploadClick={() => setShowUploadModal(true)}
             />
@@ -112,11 +113,11 @@ function App() {
                     {messages.map((msg, idx) => (
                         <ChatMessage key={idx} message={msg} />
                     ))}
-                    
+
                     {loading && (
                         <div className="message-row bot">
                             <div className="avatar bot">...</div>
-                            <div className="bubble bot" style={{fontStyle:'italic', color:'#64748b'}}>
+                            <div className="bubble bot" style={{ fontStyle: 'italic', color: '#64748b' }}>
                                 Analyzing video frames...
                             </div>
                         </div>
@@ -143,8 +144,8 @@ function App() {
 
             {/* Modals */}
             {/* Modals & Overlays */}
-            <UploadModal 
-                isOpen={showUploadModal} 
+            <UploadModal
+                isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 onStartUpload={handleStartUpload}
             />
