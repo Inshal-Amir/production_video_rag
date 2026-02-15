@@ -774,3 +774,199 @@ html,
   color: #475569;
   line-height: 1.4;
 }
+
+/* --- NEW SIDEBAR SEARCH STYLES --- */
+
+.sidebar-search-section {
+  padding: 15px 20px 5px 20px;
+  /* Spacing under header */
+}
+
+.sidebar-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  background-color: #c5c5d6;
+  /* Sidebar Hover color */
+  border: 1px solid #334155;
+  color: var(--primary);
+  padding: 12px 40px 12px 14px;
+  /* Right padding for button */
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+
+.sidebar-search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.sidebar-search-input::placeholder {
+  color: #364355;
+}
+
+.sidebar-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-search-btn:hover {
+  color: white;
+}
+
+.sidebar-search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Simple loader for the button */
+.loader-dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #3b82f6;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- NEW LAYOUT STYLES (Table + Summary) --- */
+
+.bot-response-container {
+  width: 100%;
+  max-width: 850px;
+  /* Wider to fit table */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Table Container */
+.table-container {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.custom-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.custom-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  /* Center content vertically */
+  color: #334155;
+}
+
+.custom-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Video Cell Styling */
+.table-video-wrapper {
+  width: 140px;
+  /* Fixed width for video column */
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: black;
+  position: relative;
+}
+
+.table-video-wrapper .video-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Summary Section */
+.summary-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+  /* Muted label color */
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-left: 4px;
+}
+
+.summary-box {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 20px;
+  color: #1e293b;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* Badges (Re-using from previous step, ensure they exist) */
+.badge-yes {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-no {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 4px 8px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

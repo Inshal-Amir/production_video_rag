@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Calendar, UploadCloud, Trash2, Video, Clock } from 'lucide-react';
+import { Camera, Calendar, UploadCloud, Trash2, Video, Clock, Search, Send } from 'lucide-react';
 
-const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
+const Sidebar = ({
+    onFilterChange,
+    onClearChat,
+    onUploadClick,
+    // --- New Props for Search Box ---
+    inputValue,
+    setInputValue,
+    onSearch,
+    loading
+}) => {
     // --- State: Toggle Checkboxes ---
     // --- State: Toggle Checkboxes ---
     const [enableCamFilter, setEnableCamFilter] = useState(false);
@@ -10,14 +19,14 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
 
     // --- State: Filter Values ---
     const [selectedCams, setSelectedCams] = useState([]);
-    
+
     // Split Date & Time State
     const [startDateValue, setStartDateValue] = useState("");
-    const [endDateValue, setEndDateValue] = useState("");      
-    const [startTimeValue, setStartTimeValue] = useState(""); 
+    const [endDateValue, setEndDateValue] = useState("");
+    const [startTimeValue, setStartTimeValue] = useState("");
     const [endTimeValue, setEndTimeValue] = useState("");
     const [dateWarning, setDateWarning] = useState(""); // UI warning message
-    
+
     const cameras = ["cam1", "cam2", "cam3", "cam4", "cam5"];
 
     // --- Effects: Notify Parent on Changes ---
@@ -28,9 +37,9 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
 
     // --- Handlers ---
     const toggleCamera = (cam) => {
-        if (!enableCamFilter) return; 
-        
-        setSelectedCams(prev => 
+        if (!enableCamFilter) return;
+
+        setSelectedCams(prev =>
             prev.includes(cam)
                 ? prev.filter(c => c !== cam)
                 : [...prev, cam]
@@ -38,10 +47,10 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
     };
 
     const notifyParent = () => {
-        let finalCameras = ["all"]; 
+        let finalCameras = ["all"];
         if (enableCamFilter && selectedCams.length > 0) {
             finalCameras = selectedCams;
-        } 
+        }
 
         let finalStartTime = null;
         let finalEndTime = null;
@@ -51,21 +60,21 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
         if (enableDateFilter) {
             // New Logic: Range of Dates
             if (startDateValue && endDateValue) {
-                 finalStartDate = startDateValue;
-                 finalEndDate = endDateValue;
-                 setDateWarning(""); // clear warning
+                finalStartDate = startDateValue;
+                finalEndDate = endDateValue;
+                setDateWarning(""); // clear warning
             } else if (startDateValue || endDateValue) {
-                 // User selected one but not the other
-                 setDateWarning("Please select both Start and End dates.");
+                // User selected one but not the other
+                setDateWarning("Please select both Start and End dates.");
             } else {
-                 // Neither selected, no warning yet or maybe specific guidance?
-                 // Requirement: "If the user selects only one ... tell the user to select the other one"
-                 setDateWarning("");
+                // Neither selected, no warning yet or maybe specific guidance?
+                // Requirement: "If the user selects only one ... tell the user to select the other one"
+                setDateWarning("");
             }
-            
+
             finalEndTime = endTimeValue;     // e.g., "00:20:00"
         } else {
-             setDateWarning("");
+            setDateWarning("");
         }
 
         if (enableTimeFilter) {
@@ -95,51 +104,69 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                 <span>VideoRAG</span>
             </div>
 
+            {/* --- NEW: QUERY BOX IN SIDEBAR --- */}
+            <div className="sidebar-search-section">
+                <form onSubmit={onSearch} className="sidebar-search-wrapper">
+                    <input
+                        type="text"
+                        className="sidebar-search-input"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Type your query..."
+                        disabled={loading}
+                    />
+                    <button type="submit" className="sidebar-search-btn" disabled={loading || !inputValue.trim()}>
+                        {loading ? <span className="loader-dot"></span> : <Send size={16} />}
+                    </button>
+                </form>
+            </div>
+            {/* --------------------------------- */}
+
             <div className="sidebar-content">
-                
+
                 {/* Cameras Section */}
-                <div className={`filter-section ${enableCamFilter ? 'active' : 'inactive'}`} style={{opacity: enableCamFilter ? 1 : 0.6, transition: 'opacity 0.2s'}}>
+                <div className={`filter-section ${enableCamFilter ? 'active' : 'inactive'}`} style={{ opacity: enableCamFilter ? 1 : 0.6, transition: 'opacity 0.2s' }}>
                     <div className="sidebar-check-group">
-                        <input 
-                            type="checkbox" 
+                        <input
+                            type="checkbox"
                             id="camFilterCheck"
                             checked={enableCamFilter}
                             onChange={(e) => setEnableCamFilter(e.target.checked)}
-                            style={{cursor: 'pointer'}}
+                            style={{ cursor: 'pointer' }}
                         />
-                         <label htmlFor="camFilterCheck" className="sidebar-check-label">
-                            <Camera size={16}/>
+                        <label htmlFor="camFilterCheck" className="sidebar-check-label">
+                            <Camera size={16} />
                             Cameras
                         </label>
                     </div>
-                   
+
                     <div className="camera-grid">
                         {cameras.map(cam => {
-                             const isSelected = selectedCams.includes(cam);
-                             return (
+                            const isSelected = selectedCams.includes(cam);
+                            return (
                                 <button
                                     key={cam}
                                     onClick={() => toggleCamera(cam)}
                                     disabled={!enableCamFilter}
                                     className={`camera-btn ${isSelected && enableCamFilter ? 'active' : ''}`}
-                                    style={{cursor: !enableCamFilter ? 'not-allowed' : 'pointer'}}
+                                    style={{ cursor: !enableCamFilter ? 'not-allowed' : 'pointer' }}
                                 >
                                     {cam}
                                 </button>
-                             )
+                            )
                         })}
                     </div>
                 </div>
 
                 {/* Date & Time Section */}
-                <div className={`filter-section ${enableDateFilter ? 'active' : 'inactive'}`} style={{opacity: enableDateFilter ? 1 : 0.6, transition: 'opacity 0.2s'}}>
+                <div className={`filter-section ${enableDateFilter ? 'active' : 'inactive'}`} style={{ opacity: enableDateFilter ? 1 : 0.6, transition: 'opacity 0.2s' }}>
                     <div className="sidebar-check-group">
-                         <input 
-                            type="checkbox" 
+                        <input
+                            type="checkbox"
                             id="dateFilterCheck"
                             checked={enableDateFilter}
                             onChange={(e) => setEnableDateFilter(e.target.checked)}
-                            style={{cursor: 'pointer'}}
+                            style={{ cursor: 'pointer' }}
                         />
                         <label htmlFor="dateFilterCheck" className="sidebar-check-label">
                             <Calendar size={16} />
@@ -151,12 +178,12 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                         {/* Date Range Picker */}
                         <div className="sidebar-sub-group">
                             <label className="sidebar-label">Date Range</label>
-                            
+
                             {/* Start Date */}
-                            <div style={{marginBottom: 8}}>
-                                <span style={{fontSize:'0.65rem', color:'#64748b', fontWeight:600, textTransform:'uppercase', marginLeft:4, display:'block', marginBottom:4}}>Start ({startDateValue || '...'})</span>
+                            <div style={{ marginBottom: 8 }}>
+                                <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginLeft: 4, display: 'block', marginBottom: 4 }}>Start ({startDateValue || '...'})</span>
                                 <div className="sidebar-input-wrapper">
-                                     <div className="sidebar-icon-left">
+                                    <div className="sidebar-icon-left">
                                         <Calendar size={16} />
                                     </div>
                                     <input
@@ -165,16 +192,16 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                                         value={startDateValue}
                                         onChange={(e) => setStartDateValue(e.target.value)}
                                         className="sidebar-input"
-                                        style={{colorScheme: 'dark'}} 
+                                        style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
                             </div>
 
-                             {/* End Date */}
-                             <div>
-                                <span style={{fontSize:'0.65rem', color:'#64748b', fontWeight:600, textTransform:'uppercase', marginLeft:4, display:'block', marginBottom:4}}>End ({endDateValue || '...'})</span>
+                            {/* End Date */}
+                            <div>
+                                <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginLeft: 4, display: 'block', marginBottom: 4 }}>End ({endDateValue || '...'})</span>
                                 <div className="sidebar-input-wrapper">
-                                     <div className="sidebar-icon-left">
+                                    <div className="sidebar-icon-left">
                                         <Calendar size={16} />
                                     </div>
                                     <input
@@ -183,31 +210,31 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                                         value={endDateValue}
                                         onChange={(e) => setEndDateValue(e.target.value)}
                                         className="sidebar-input"
-                                        style={{colorScheme: 'dark'}} 
+                                        style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
                             </div>
-                            
+
                             {dateWarning && (
-                                <div style={{color: '#ef4444', fontSize: '0.75rem', marginTop: 4, fontStyle: 'italic'}}>
+                                <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: 4, fontStyle: 'italic' }}>
                                     {dateWarning}
                                 </div>
                             )}
                         </div>
-                        
-                        </div>
+
                     </div>
+                </div>
 
 
                 {/* Clock Time Section */}
-                <div className={`filter-section ${enableTimeFilter ? 'active' : 'inactive'}`} style={{opacity: enableTimeFilter ? 1 : 0.6, transition: 'opacity 0.2s'}}>
+                <div className={`filter-section ${enableTimeFilter ? 'active' : 'inactive'}`} style={{ opacity: enableTimeFilter ? 1 : 0.6, transition: 'opacity 0.2s' }}>
                     <div className="sidebar-check-group">
-                         <input 
-                            type="checkbox" 
+                        <input
+                            type="checkbox"
                             id="timeFilterCheck"
                             checked={enableTimeFilter}
                             onChange={(e) => setEnableTimeFilter(e.target.checked)}
-                            style={{cursor: 'pointer'}}
+                            style={{ cursor: 'pointer' }}
                         />
                         <label htmlFor="timeFilterCheck" className="sidebar-check-label">
                             <Clock size={16} />
@@ -216,16 +243,16 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                     </div>
 
                     <div className="sidebar-input-group">
-                         {/* Time Inputs */}
-                         <div className="sidebar-sub-group">
-                            <label className="sidebar-label" style={{display:'flex', alignItems:'center', gap:4}}>
+                        {/* Time Inputs */}
+                        <div className="sidebar-sub-group">
+                            <label className="sidebar-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                 Time of Day (e.g. 9 to 5)
                             </label>
-                            
+
                             <div className="sidebar-input-group">
                                 {/* Start Time */}
                                 <div className="sidebar-sub-group">
-                                    <span style={{fontSize:'0.65rem', color:'#64748b', fontWeight:600, textTransform:'uppercase', marginLeft:4}}>Start Time</span>
+                                    <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginLeft: 4 }}>Start Time</span>
                                     <div className="sidebar-input-wrapper">
                                         <div className="sidebar-icon-left">
                                             <Clock size={16} />
@@ -237,14 +264,14 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                                             value={startTimeValue}
                                             onChange={(e) => setStartTimeValue(e.target.value)}
                                             className="sidebar-input"
-                                            style={{colorScheme: 'dark'}}
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                     </div>
                                 </div>
 
                                 {/* End Time */}
                                 <div className="sidebar-sub-group">
-                                    <span style={{fontSize:'0.65rem', color:'#64748b', fontWeight:600, textTransform:'uppercase', marginLeft:4}}>End Time</span>
+                                    <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginLeft: 4 }}>End Time</span>
                                     <div className="sidebar-input-wrapper">
                                         <div className="sidebar-icon-left">
                                             <Clock size={16} />
@@ -256,7 +283,7 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                                             value={endTimeValue}
                                             onChange={(e) => setEndTimeValue(e.target.value)}
                                             className="sidebar-input"
-                                            style={{colorScheme: 'dark'}}
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                     </div>
                                 </div>
@@ -273,12 +300,12 @@ const Sidebar = ({ onFilterChange, onClearChat, onUploadClick }) => {
                 </button>
             </div>
 
-            <div style={{padding: 20, borderTop: '1px solid #1e293b'}}>
-                <button 
+            <div style={{ padding: 20, borderTop: '1px solid #1e293b' }}>
+                <button
                     onClick={onClearChat}
                     className="clear-chat-btn"
                 >
-                    <Trash2 size={16} /> 
+                    <Trash2 size={16} />
                     Clear Chat History
                 </button>
             </div>

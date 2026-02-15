@@ -100,11 +100,16 @@ function App() {
 
     return (
         <div className="app-container">
-            {/* Sidebar (Fixed Width) */}
+            {/* Sidebar (Fixed Width) - NOW CONTROLS THE INPUT */}
             <Sidebar
                 onFilterChange={setFilters}
                 onClearChat={() => setMessages([])}
                 onUploadClick={() => setShowUploadModal(true)}
+                // Pass Input State Down to Sidebar
+                inputValue={inputValue}
+                setInputValue={setInputValue}
+                onSearch={handleSend}
+                loading={loading}
             />
 
             {/* Main Chat Area (Flexible) */}
@@ -125,24 +130,9 @@ function App() {
                     <div ref={chatEndRef} />
                 </div>
 
-                <div className="input-area">
-                    <form onSubmit={handleSend} className="input-wrapper">
-                        <input
-                            type="text"
-                            className="chat-input"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="Describe the event (e.g. 'Red car turning left')..."
-                            disabled={loading}
-                        />
-                        <button type="submit" className="send-btn" disabled={loading || !inputValue.trim()}>
-                            <Send size={20} />
-                        </button>
-                    </form>
-                </div>
+                {/* INPUT AREA REMOVED (Moved to Sidebar) */}
             </main>
 
-            {/* Modals */}
             {/* Modals & Overlays */}
             <UploadModal
                 isOpen={showUploadModal}
