@@ -60,7 +60,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/production_video_rag.git
+git clone https://github.com/Inshal-Amir/production_video_rag.git
 cd production_video_rag
 
 ```
