@@ -12,7 +12,6 @@ from app.services.qdrant_store import QdrantService
 from app.services.video_proc import VideoProcessor
 # from app.services.reranker import rerank_results  <--- REMOVED IMPORT
 from app.models.api_models import SearchRequest
-from app.services.supabase_storage import SupabaseStorage
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -28,7 +27,6 @@ app.mount("/static", StaticFiles(directory=str(settings.DATA_DIR)), name="static
 llm = get_llm_provider()
 qdrant = QdrantService()
 processor = VideoProcessor()
-supabase = SupabaseStorage()
 
 @app.post("/api/upload")
 async def upload_video(
@@ -36,10 +34,8 @@ async def upload_video(
     camera_id: str = Form(...),
     start_timestamp: str = Form(...) 
 ):
-    # 1. Save locally temporarily for processing
-    temp_dir = settings.DATA_DIR / "temp"
-    os.makedirs(temp_dir, exist_ok=True)
-    file_path = temp_dir / file.filename
+    # 1. Save directly to local storage
+    file_path = settings.VIDEO_DIR / file.filename
     
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -60,10 +56,8 @@ async def upload_video(
         print(f"Error parsing start_timestamp {start_timestamp}: {e}")
         video_start_dt = datetime.now() # Fallback
 
-    # 3. Upload Original to Supabase
-    supabase_path = f"originals/{file.filename}"
-    public_url = supabase.upload_file(str(file_path), supabase_path)
-    print(f"Uploaded to Supabase: {public_url}")
+    # Static URL for local playback
+    public_url = f"/static/videos/{file.filename}"
 
     for frame_data in frames_gen:
         description = llm.get_vision_description(frame_data['image'])
@@ -82,7 +76,7 @@ async def upload_video(
             "relative_offset": frame_data['relative_offset'],
             "clock_time_seconds": clock_time_seconds,
             "description": description,
-            "video_path": supabase_path, # Store relative Supabase path
+            "video_path": file.filename, # Store filename
             "frame_id": frame_data['frame_id'],
             "video_url": public_url # Direct link for full video playback
         }
@@ -92,10 +86,6 @@ async def upload_video(
     # Upload all frames in one batch
     if batch_items:
         qdrant.upload_batch(batch_items)
-
-    # 4. Cleanup Temp File
-    if os.path.exists(file_path):
-        os.remove(file_path)
 
     return {"status": "success", "frames_indexed": indexed_count}
 
@@ -170,11 +160,6 @@ async def search_videos(request: SearchRequest):
         final_results.append(res)
     
     # Generate & Inject Trimmed Clips
-    # CLIPS_DIR = settings.DATA_DIR / "clips"
-    # os.makedirs(CLIPS_DIR, exist_ok=True)
-    temp_dir = settings.DATA_DIR / "temp"
-    os.makedirs(temp_dir, exist_ok=True)
-    
     for res in final_results:
         # Debug
         print(f"DEBUG: Processing result {res.get('id')}")
@@ -183,94 +168,45 @@ async def search_videos(request: SearchRequest):
 
         # Unique clip name based on Point ID
         clip_filename = f"clip_{res['id']}.mp4"
-        supabase_clip_path = f"clips/{clip_filename}"
+        local_clip_path = settings.CLIPS_DIR / clip_filename
         
-        # 1. Check if clip already exists in Supabase
-        # Optimistic check: Assume if we have a stored clip_url in metadata (future optimization), use it
-        # For now, check existence or just rely on 'exists' check if efficient, or just blindly generate if we want to be safe.
-        # Let's check existence first to save compute.
-        # list() in supabase-py is a bit heavy, maybe we can construct the specific public URL and check HEAD?
-        # Actually initializing Supabase check logic:
-        
-        # We can also just default to the public URL and let the frontend fail? No, that's bad UX.
-        # Let's check with our storage service.
-        
-        # IF clip exists, generate Public URL and move on.
-        # But `exists` usually requires listing. Let's try to just generate URL and assume it exists? 
-        # No, query is dynamic.
-        
-        # Let's optimize: Check if we have processed this before locally? No, we are stateless.
-        
-        # If the video logic below fails, fallback to full video.
-        
-        # Determine correct clip timestamp (Relative vs Epoch)
+        # Determine correct clip timestamp
         clip_time = res.get('relative_offset')
         
         if clip_time is None:
              # Legacy Fallback
-             if res['timestamp_sortable'] < 100000:
-                  clip_time = res['timestamp_sortable']
+             if res.get('timestamp_sortable', 0) < 100000:
+                  clip_time = res.get('timestamp_sortable', 0)
              else:
                   print(f"Skipping clip for {clip_filename}: timestamp too large.")
-                  # Fallback to full video
                   if not res.get('video_url'):
-                       res['video_url'] = supabase.get_public_url(res.get('video_path', ''))
+                       res['video_url'] = f"/static/videos/{res.get('video_path', '')}"
                   res['timestamp_sortable'] = 0 
                   continue
 
-        # Check if clip exists in Supabase
-        # We will use the 'exists' helper which does a list. It might be slow if folder is huge.
-        # TODO: Optimize by storing 'clip_generated' flag in Qdrant later.
-        
-        # If clip NOT in Supabase (or we want to ensure it exists):
-        if not supabase.exists(supabase_clip_path):
+        original_video_filename = res.get('video_path')
+        local_video_path = settings.VIDEO_DIR / original_video_filename
+
+        # Check if clip exists locally
+        if not os.path.exists(local_clip_path):
             print(f"Generating clip: {clip_filename} at offset {clip_time}")
             
-            # Need original video locally to clip
-            original_path = res.get('video_path') # e.g. "originals/video.mp4"
-            local_video_path = temp_dir / os.path.basename(original_path)
-            
-            # Download if not locally present in temp
-            if not os.path.exists(local_video_path):
-                print(f"Downloading original video: {original_path}")
-                try:
-                    supabase.download_file(original_path, str(local_video_path))
-                except Exception as e:
-                    print(f"Failed to download video: {e}")
-                    # Fallback
-                    res['video_url'] = supabase.get_public_url(original_path)
-                    continue
-
-            # Generate Clip Locally
-            local_clip_path = temp_dir / clip_filename
             try:
                 success = processor.create_clip(
                     str(local_video_path), 
                     clip_time, 
                     str(local_clip_path)
                 )
-                if success:
-                    # Upload to Supabase
-                    print(f"Uploading clip: {clip_filename}")
-                    supabase.upload_file(str(local_clip_path), supabase_clip_path)
-                    
-                    # Cleanup Clip
-                    os.remove(local_clip_path)
-                else:
+                if not success:
                     raise Exception("Clip generation failed")
             except Exception as e:
-                print(f"Failed to create/upload clip: {e}")
-                # Fallback
-                res['video_url'] = supabase.get_public_url(original_path)
+                print(f"Failed to create clip: {e}")
+                # Fallback to local original video
+                res['video_url'] = f"/static/videos/{original_video_filename}"
                 continue
-                
-            # We treat the temp original video as a cache? Or delete?
-            # Delete to save space for now.
-            if os.path.exists(local_video_path):
-                 os.remove(local_video_path)
 
-        # Point to the Supabase Clip
-        res['video_url'] = supabase.get_public_url(supabase_clip_path)
+        # Point to the local static clip
+        res['video_url'] = f"/static/clips/{clip_filename}"
         
         # CRITICAL: Reset timestamp to 0 so Player starts from beginning of the CLIP
         res['timestamp_sortable'] = 0

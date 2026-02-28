@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
     DATA_DIR: Path = BASE_DIR / "data"
     VIDEO_DIR: Path = DATA_DIR / "videos"
+    CLIPS_DIR: Path = DATA_DIR / "clips"
     
     # Secrets
     OPENAI_API_KEY: str
@@ -21,14 +22,10 @@ class Settings(BaseSettings):
     # --- NEW: Add API Key Support ---
     QDRANT_API_KEY: Optional[str] = None 
 
-    # Supabase Config
-    SUPABASE_URL: str
-    SUPABASE_ANON_KEY: str # Anon or Service Role
-    SUPABASE_BUCKET: str = "videos"
-
     class Config:
         env_file = ".env"
 
 settings = Settings()
 
 os.makedirs(settings.VIDEO_DIR, exist_ok=True)
+os.makedirs(settings.CLIPS_DIR, exist_ok=True)
